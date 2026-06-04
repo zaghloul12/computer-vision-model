@@ -1,7 +1,6 @@
 import io
 import tempfile
 
-import cv2
 import numpy as np
 import streamlit as st
 from PIL import Image
@@ -47,7 +46,7 @@ def main():
 
     result = results[0]
     annotated_bgr = result.plot()
-    annotated_rgb = cv2.cvtColor(annotated_bgr, cv2.COLOR_BGR2RGB)
+    annotated_rgb = annotated_bgr[:, :, ::-1]
     st.image(annotated_rgb, caption="Prediction", use_container_width=True)
 
     buffer = io.BytesIO()
