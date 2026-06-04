@@ -1,4 +1,5 @@
 import io
+import os
 import tempfile
 
 import numpy as np
@@ -19,6 +20,7 @@ def main():
     with st.sidebar:
         st.header("Model Settings")
         weights_path = st.text_input("Weights path", "runs/segment/custom/weights/best.pt")
+        uploaded_weights = st.file_uploader("Or upload weights (.pt)", type=["pt"])
         conf = st.slider("Confidence", 0.05, 0.9, 0.25, 0.05)
         imgsz = st.selectbox("Image size", [320, 512, 640, 768, 1024], index=2)
         device = st.text_input("Device", "")
@@ -35,7 +37,16 @@ def main():
         image.save(tmp.name)
         img_path = tmp.name
 
-    model = load_model(weights_path)
+    model_path = weights_path
+    if uploaded_weights is not None:
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp_w:
+            tmp_w.write(uploaded_weights.read())
+            model_path = tmp_w.name
+    elif not os.path.exists(weights_path):
+        st.warning("Weights not found. Using pretrained yolov8n-seg.pt.")
+        model_path = "yolov8n-seg.pt"
+
+    model = load_model(model_path)
     results = model.predict(
         source=img_path,
         conf=conf,
