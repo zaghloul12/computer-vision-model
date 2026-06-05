@@ -2,14 +2,16 @@ import io
 import os
 import tempfile
 
-import numpy as np
 import streamlit as st
 from PIL import Image
+import torch
 from ultralytics import YOLO
+from ultralytics.nn.tasks import SegmentationModel
 
 
 @st.cache_resource
 def load_model(weights_path: str):
+    torch.serialization.add_safe_globals([SegmentationModel])
     return YOLO(weights_path)
 
 
@@ -31,7 +33,7 @@ def main():
         return
 
     image = Image.open(uploaded).convert("RGB")
-    st.image(image, caption="Input", use_container_width=True)
+    st.image(image, caption="Input", width="stretch")
 
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
         image.save(tmp.name)
@@ -58,7 +60,7 @@ def main():
     result = results[0]
     annotated_bgr = result.plot()
     annotated_rgb = annotated_bgr[:, :, ::-1]
-    st.image(annotated_rgb, caption="Prediction", use_container_width=True)
+    st.image(annotated_rgb, caption="Prediction", width="stretch")
 
     buffer = io.BytesIO()
     Image.fromarray(annotated_rgb).save(buffer, format="PNG")
